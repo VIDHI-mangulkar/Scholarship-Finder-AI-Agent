@@ -4,99 +4,33 @@ from judge import judge_agent
 
 st.set_page_config(page_title="Scholarship AI Agent", layout="wide")
 
-# =========================
-# UI STYLE
-# =========================
-st.markdown("""
-<style>
-.stApp { background: linear-gradient(to right, #eef2ff, #f8fafc); }
-.card {
-    background:white; padding:15px;
-    border-radius:12px; border:1px solid #ddd;
-    margin-bottom:10px;
-}
-.step {
-    background:#e0f2fe;
-    padding:12px;
-    border-radius:10px;
-    margin-bottom:10px;
-}
-</style>
-""", unsafe_allow_html=True)
+st.title("🎓 Scholarship AI Agent (Ollama + Llama3)")
 
-st.title("🎓 Scholarship Finder AI Agent")
+course = st.selectbox("Course", ["10th","12th","B.Tech","MBA","M.Tech","Law","Architecture"])
+country = st.selectbox("Country", ["India","USA","UK","Canada"])
+cgpa = st.text_input("CGPA (optional)")
 
-# =========================
-# INPUTS
-# =========================
-course = st.selectbox("Course", [
-    "10th","11th","12th","Diploma","B.Tech","B.Arch",
-    "BA","BSc","BCom","LLB","MBA","M.Tech"
-])
+profile = f"{course}, {country}, CGPA {cgpa}"
 
-country = st.selectbox("Country", [
-    "India","USA","UK","Canada","Germany","Australia"
-])
+if st.button("🚀 Run Agent"):
 
-cgpa = st.text_input("CGPA (Optional)")
+    st.subheader("Step 1: Search")
+    data = search_agent(profile)
 
-profile = f"""
-Course: {course}
-Country: {country}
-CGPA: {cgpa if cgpa else "Not Provided"}
-"""
+    for r in data["results"]:
+        st.write("###", r["title"])
+        st.write(r["content"])
+        st.write("🔗", r["url"])
+        st.write("---")
 
-# =========================
-# RUN
-# =========================
-if st.button("🚀 Run AI Agent"):
+    st.subheader("Step 2: Eligibility")
+    eligible = eligibility_agent(profile, data)
+    st.write(eligible)
 
-    eligible = ""
-    rec = ""
+    st.subheader("Step 3: Recommendation")
+    rec = recommendation_agent(eligible)
+    st.write(rec)
 
-    # STEP 1
-    st.subheader("🔍 Step 1: Search Results")
-    try:
-        data = search_agent(profile)
-
-        for item in data.get("results", []):
-            st.markdown(f"""
-            <div class="card">
-            <b>{item['title']}</b><br>
-            {item['content']}<br>
-            <a href="{item['url']}" target="_blank">Apply</a>
-            </div>
-            """, unsafe_allow_html=True)
-
-    except Exception as e:
-        st.error(e)
-        data = {}
-
-    # STEP 2
-    st.subheader("📝 Step 2: Eligibility + Summary")
-
-    try:
-        eligible = eligibility_agent(profile, data)
-        st.markdown(f"<div class='step'>{eligible}</div>", unsafe_allow_html=True)
-    except Exception as e:
-        st.error(e)
-        eligible = ""
-
-    # STEP 3
-    st.subheader("🏆 Step 3: Recommendations")
-
-    try:
-        rec = recommendation_agent(eligible)
-        st.markdown(f"<div class='step'>{rec}</div>", unsafe_allow_html=True)
-    except Exception as e:
-        st.error(e)
-        rec = ""
-
-    # STEP 4
-    st.subheader("⚖️ Step 4: AI Evaluation")
-
-    try:
-        judge = judge_agent(rec)
-        st.markdown(f"<div class='step'>{judge}</div>", unsafe_allow_html=True)
-    except Exception as e:
-        st.error(e)
+    st.subheader("Step 4: Evaluation")
+    judge = judge_agent(rec)
+    st.write(judge)
