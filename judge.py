@@ -1,40 +1,34 @@
 import requests
 
+MODEL = "llama3"
+
+
 def safe_generate(prompt):
     try:
-        res = requests.post(
+        response = requests.post(
             "http://localhost:11434/api/generate",
             json={
-                "model": "llama3.2:3b",
+                "model": MODEL,
                 "prompt": prompt,
                 "stream": False
             }
         )
-        return res.json().get("response", "")
+        return response.json()["response"]
     except Exception as e:
         return f"❌ ERROR: {str(e)}"
 
 
-def judge_agent(output):
+def judge_agent(text):
     prompt = f"""
-Evaluate this scholarship assistant output:
+Evaluate this output:
 
-{output}
+{text}
 
-Strictly evaluate based on:
-- Personalization
-- Practical usefulness
-- Clarity
-- Actionable insights
-
-Return:
-
-Relevance: X/5
-Clarity: X/5
-Usefulness: X/5
-Overall: X/5
-
-Summary: short explanation
+Give:
+- Relevance /5
+- Clarity /5
+- Usefulness /5
+- Overall Score /5
+- Summary
 """
-
     return safe_generate(prompt)
